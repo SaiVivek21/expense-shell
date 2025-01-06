@@ -29,30 +29,34 @@ CHECK_ROOT(){
     fi
 }
 
+mkdir -p $LOGS_FOLDER
 echo "Script started executing at: $TIMESTAMP" &>>$LOG_FILE_NAME
 
 CHECK_ROOT
 
-dnf install nginx -y &>>$LOG_FILE_NAME
-VALIDATE $? "install nginx server"
+dnf install nginx -y  &>>$LOG_FILE_NAME
+VALIDATE $? "Installing Nginx Server"
 
 systemctl enable nginx &>>$LOG_FILE_NAME
-VALIDATE $? "enable nginx server"
+VALIDATE $? "Enabling Nginx server"
 
 systemctl start nginx &>>$LOG_FILE_NAME
-VALIDATE $? "starting nginx server"
+VALIDATE $? "Starting Nginx Server"
 
 rm -rf /usr/share/nginx/html/* &>>$LOG_FILE_NAME
-VALIDATE $? "removing existing version code"
+VALIDATE $? "Removing existing version of code"
 
 curl -o /tmp/frontend.zip https://expense-builds.s3.us-east-1.amazonaws.com/expense-frontend-v2.zip &>>$LOG_FILE_NAME
-VALIDATE $? "downloading latest code"
+VALIDATE $? "Downloading Latest code"
 
-cd /usr/share/nginx/html &>>$LOG_FILE_NAME
-VALIDATE $? "moving to html directory"
+cd /usr/share/nginx/html
+VALIDATE $? "Moving to HTML directory"
 
 unzip /tmp/frontend.zip &>>$LOG_FILE_NAME
-VALIDATE $? "unziping the frontend code"
+VALIDATE $? "unzipping the frontend code"
+
+cp /home/ec2-user/expense-shell/expense.conf /etc/nginx/default.d/expense.conf
+VALIDATE $? "Copied expense config"
 
 systemctl restart nginx &>>$LOG_FILE_NAME
-VALIDATE $? "restarting nginx"
+VALIDATE $? "Restarting nginx"
