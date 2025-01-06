@@ -34,52 +34,53 @@ echo "Script started executing at: $TIMESTAMP" &>>$LOG_FILE_NAME
 CHECK_ROOT
 
 dnf module disable nodejs -y &>>$LOG_FILE_NAME
-VALIDATE $? "disabling old nodejs"
+VALIDATE $? "Disabling existing default NodeJS"
 
 dnf module enable nodejs:20 -y &>>$LOG_FILE_NAME
-VALIDATE $? "enabling new nodejs"
+VALIDATE $? "Enabling NodeJS 20"
 
 dnf install nodejs -y &>>$LOG_FILE_NAME
-VALIDATE $? "installing nodejs"
+VALIDATE $? "Installing NodeJS"
 
 id expense &>>$LOG_FILE_NAME
 if [ $? -ne 0 ]
 then
     useradd expense &>>$LOG_FILE_NAME
-    VALIDATE $? "adding user expense"
+    VALIDATE $? "Adding expense user"
 else
-    echo -e "expense user already exists ... $Y skipping $N"
-fi 
+    echo -e "expense user already exists ... $Y SKIPPING $N"
+fi
 
 mkdir -p /app &>>$LOG_FILE_NAME
-VALIDATE $? "making the app directory"
+VALIDATE $? "Creating app directory"
 
 curl -o /tmp/backend.zip https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip &>>$LOG_FILE_NAME
-VALIDATE $? "downloading backend"
+VALIDATE $? "Downloading backend"
 
-cd/app
+cd /app
 rm -rf /app/*
 
 unzip /tmp/backend.zip &>>$LOG_FILE_NAME
 VALIDATE $? "unzip backend"
 
 npm install &>>$LOG_FILE_NAME
-VALIDATE $? "installing backend"
+VALIDATE $? "Installing dependencies"
 
-cp /home/ec2-user/expense-shell/backend.service /etc/systemd/system/backend.service 
+cp /home/ec2-user/expense-shell/backend.service /etc/systemd/system/backend.service
+
+# Prepare MySQL Schema
 
 dnf install mysql -y &>>$LOG_FILE_NAME
-VALIDATE $? "installing mysql client"
+VALIDATE $? "Installing MySQL Client"
 
-mysql -h mysql.basam.site -uroot -pExpenseApp@1 < /app/schema/backend.sql &>>$LOG_FILE_NAME
-VALIDATE $? "setting up transactions schema and tables"
+mysql -h mysql.daws82s.online -uroot -pExpenseApp@1 < /app/schema/backend.sql &>>$LOG_FILE_NAME
+VALIDATE $? "Setting up the transactions schema and tables"
 
 systemctl daemon-reload &>>$LOG_FILE_NAME
-VALIDATE $? "daemon reload"
+VALIDATE $? "Daemon Reload"
 
-syatemctl enable backend &>>$LOG_FILE_NAME
-VALIDATE $? "enable backend"
+systemctl enable backend &>>$LOG_FILE_NAME
+VALIDATE $? "Enabling backend"
 
-systemctl restart backend &>>$LOG_FILE_NAME 
-VALIDATE $? "starting backend"
-
+systemctl restart backend &>>$LOG_FILE_NAME
+VALIDATE $? "Starting Backend"
