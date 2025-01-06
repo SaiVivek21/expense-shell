@@ -45,7 +45,7 @@ VALIDATE $? "STARTING MYSQL"
 
 mysql -h mysql.basam.site -u root -pExpenseApp@1 -e 'show databases;' &>>LOG_FILE_NAME
 
-if [ $? -ne 0]
+if [ $? -ne 0 ]
 then
     echo "MYSQL root password not setup " &>>LOG_FILE_NAME
     mysql_secure_installation --set-root-pass ExpenseApp@1
